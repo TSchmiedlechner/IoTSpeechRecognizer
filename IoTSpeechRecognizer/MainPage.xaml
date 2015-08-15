@@ -7,6 +7,7 @@
     mc:Ignorable="d">
 
   <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <MediaElement x:Name="media" AutoPlay="False"/>
     <Grid x:Name="RootGrid" Margin="12,20,12,12">
       <Grid.RowDefinitions>
         <RowDefinition Height="Auto"/>

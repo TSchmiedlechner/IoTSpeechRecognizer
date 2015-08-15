@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace IoTSpeechRecognizer.Speech
+namespace IO.Speech
 {
   public class SpeechEventArgs : EventArgs
   {

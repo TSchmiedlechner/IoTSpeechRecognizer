@@ -1,71 +1,88 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using Windows.Media.SpeechRecognition;
+using Windows.Media.SpeechSynthesis;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
-using IoTSpeechRecognizer.Speech;
+using IO.Speech;
 
 namespace IoTSpeechRecognizer
 {
   public sealed partial class MainPage
   {
     private readonly CoreDispatcher _dispatcher;
-    private readonly StringBuilder _dictatedTextBuilder;
-    private readonly ISpeechListener _speechListener ;
+    private readonly CommandSpeechListener _listener;
+
+    private bool _isListening;
 
     public MainPage()
     {
       InitializeComponent();
-      _dictatedTextBuilder = new StringBuilder();
       _dispatcher = CoreWindow.GetForCurrentThread().Dispatcher;
-      _speechListener = new ContinuousSpeechListener(SpeechRecognizer.SystemSpeechLanguage, new List<string> { "Hey Kira" });
-    }
 
-    protected override void OnNavigatedTo(NavigationEventArgs e)
-    {
-      _speechListener.SpeechReceived += _speechListener_SpeechReceived;
-    }
+      _listener = new CommandSpeechListener(SpeechRecognizer.SystemSpeechLanguage, "Hey Kira",
+        new List<string>
+        {
+          "Hintergrund wechseln",
+          "Firefox starten",
+          "Müll hinausbringen"
+        });
 
-    private async void _speechListener_SpeechReceived(object sender, SpeechEventArgs e)
-    {
-      await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-      {
-        dictationTextBox.Text += $", {e.Text}";
-      });
+      _listener.CommandReceived += _listener_CommandReceived;
+      _listener.CatchwordReceived += _listener_CatchwordReceived;
     }
 
     protected override void OnNavigatedFrom(NavigationEventArgs e)
     {
-      _speechListener.StopAsync();
-      _speechListener.Dispose();
+      _listener.StopAsync();
+    }
+
+    private async void _listener_CatchwordReceived(object sender, EventArgs e)
+    {
+      // TODO extract speech output
+      var synthesizer = new SpeechSynthesizer();
+      var synthesisStream = await synthesizer.SynthesizeTextToStreamAsync("Ja?");
+      
+      await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+      {
+        media = new MediaElement { AutoPlay = true };
+        media.SetSource(synthesisStream, synthesisStream.ContentType);
+        media.Play();
+      });
     }
     
-    
+    private async void _listener_CommandReceived(object sender, CommandEventArgs e)
+    {
+      await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+      {
+        dictationTextBox.Text += $" {e.Name}";
+      });
+    }
 
     private void ContinuousRecognize_Click(object sender, RoutedEventArgs e)
     {
-      if (!_speechListener.IsListening)
+      if (!_isListening)
       {
-          DictationButtonText.Text = " Stop Dictation";
-          discardedTextBlock.Visibility = Visibility.Collapsed;
-          _speechListener.StartAsync();
-        
+        _isListening = true;
+        DictationButtonText.Text = " Stop Dictation";
+        discardedTextBlock.Visibility = Visibility.Collapsed;
+        _listener.StartAsync();
+
       }
       else
       {
+        _isListening = false;
         DictationButtonText.Text = " Start Dictation";
-        _speechListener.StopAsync();
+        _listener.StopAsync();
       }
     }
 
     private void btnClearText_Click(object sender, RoutedEventArgs e)
     {
       btnClearText.IsEnabled = false;
-      _dictatedTextBuilder.Clear();
       dictationTextBox.Text = "";
       discardedTextBlock.Visibility = Visibility.Collapsed;
       
