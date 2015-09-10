@@ -1,8 +1,6 @@
 *.docx
 *.zip
 *.pdf
-*.png
-*.jpg
 Thumbs.db
 
 ## Latex
@@ -185,7 +183,6 @@ ClientBin/
 *~
 *.dbmdl
 *.dbproj.schemaview
-*.pfx
 *.publishsettings
 node_modules/
 orleans.codegen.cs
