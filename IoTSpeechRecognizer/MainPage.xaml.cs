@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using Windows.Media.SpeechRecognition;
 using Windows.Media.SpeechSynthesis;
+using Windows.UI;
 using Windows.UI.Core;
+using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
@@ -23,7 +25,7 @@ namespace IoTSpeechRecognizer
       InitializeComponent();
       _dispatcher = CoreWindow.GetForCurrentThread().Dispatcher;
 
-      _listener = new CommandSpeechListener(SpeechRecognizer.SystemSpeechLanguage, "Hey Kira",
+      _listener = new CommandSpeechListener(SpeechRecognizer.SystemSpeechLanguage, "Hey",
         new List<string>
         {
           "Hintergrund wechseln",
@@ -56,9 +58,15 @@ namespace IoTSpeechRecognizer
     
     private async void _listener_CommandReceived(object sender, CommandEventArgs e)
     {
-      await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+      await _dispatcher.RunAsync(CoreDispatcherPriority.Normal, async () =>
       {
-        dictationTextBox.Text += $" {e.Name}";
+        if(e.Name == "Hintergrund wechseln")
+          MainGrid.Background = new SolidColorBrush(Colors.Green);
+        else if (e.Name == "Firefox starten")
+        {
+          var dialog = new MessageDialog("Firefox..");
+          await dialog.ShowAsync();
+        }
       });
     }
 
